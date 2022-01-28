@@ -10,7 +10,7 @@ class ClassInfo(models.Model):
     '''
     class_name = models.CharField(verbose_name='班名', max_length=30, null=True, unique=True)
     class_id = models.AutoField(verbose_name='班id', primary_key=True)
-    class_leader_id = models.IntegerField(verbose_name='班长id', )
+    class_leader_id = models.IntegerField(verbose_name='班长id', unique=True)
     class_leader_name = models.CharField(verbose_name='班长名', max_length=30, )
     # 班级人数，在人员出现增改的时候需要做变更
     class_count = models.IntegerField(verbose_name='班级人数', default=0)
@@ -78,29 +78,11 @@ class UserInfo(AbstractUser):
     station = models.CharField(verbose_name='岗位', max_length=30, choices=STATION_CHOICES, default='general_staff')
     # 星级 / string
     star_level = models.CharField(verbose_name='星级', max_length=30, choices=STAR_CHOICES, default='one_star')
-    # 入职时间 / date
-    entry_time = models.DateField(verbose_name='入职时间', null=True)
-    # 在岗时间 / date
-    # 通过截止时间减去入职时间来计算
-    # 截止时间 / date
-    cut_off_time = models.DateField(verbose_name='截止时间', auto_now=True)
-    # 预产期 / date
-    due_date = models.DateField(verbose_name='预产期', null=True)
-    # 产假 / float/按天来算
-    baby_break = models.CharField(verbose_name='产假', max_length=30, null=True)
-    # 哺乳期 / date
-    lactation_period = models.DateField(verbose_name='哺乳期', null=True)
-    # 借调岗位 / string
-    # 借调时间 / date
     # 此员工一周最多能排的晚班次数 / int / >= 0
     max_night_shift = models.IntegerField(verbose_name='一周最多能上的晚班数', null=True)
     # 技能 / 在技能表中有做多对多的关联
     # 是否请假 /
     vacate = models.BooleanField(verbose_name='是否处于请假状态', default=False)
-    # 请假开始时间
-    vacate_start_time = models.DateTimeField(verbose_name='请假开始时间', null=True)
-    # 请假结束时间/必须大于开始时间
-    vacate_end_time = models.DateTimeField(verbose_name='请假结束时间', null=True)
     # 是否专席/默认为普席
     is_spe_seat = models.BooleanField(verbose_name='是否专席', default=False)
 
@@ -124,7 +106,8 @@ class GroupInfo(models.Model):
     )
     group_id = models.AutoField(verbose_name='组id', primary_key=True)
     group_name = models.CharField(verbose_name='组名', max_length=30)
-    group_leader_id = models.IntegerField(verbose_name='组长id', null=True)
+    group_leader_id = models.IntegerField(verbose_name='组长id', null=True, unique=True)
+    group_leader_name = models.CharField(verbose_name='组长名字', null=False, max_length=30)
     group_count = models.IntegerField(verbose_name='小组人数', default=0)
     group_category = models.CharField(verbose_name='小组类型', max_length=30, choices=GROUP_CATEGORY_CHOICES)
     group_class = models.ForeignKey(ClassInfo, related_name='group_members', on_delete=models.CASCADE,
@@ -137,6 +120,16 @@ class GroupInfo(models.Model):
         db_table = 'group_info'
         verbose_name = '小组信息'
         verbose_name_plural = '小组信息'
+
+
+class UserSkill(models.Model):
+    user = models.ForeignKey('UserInfo', verbose_name='员工', on_delete=models.CASCADE)
+    skill = models.ForeignKey('SkillTable', verbose_name='技能', on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'user_skill'
+        verbose_name = '员工-技能表'
+        verbose_name_plural = '员工-技能表'
 
 
 
